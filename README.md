@@ -17,12 +17,34 @@ This project uses the **TheLook E-commerce** dataset.
 - **Note**: The dataset files (`events.csv`, `users.csv`, etc.) are excluded from the repo via `.gitignore`. You must download them and place them in `data/` to run this locally.
 
 ## Architecture
-Postgres (Warehouse) <--- Loader (Python) <--- Raw Data (CSV)
-       ^
-       |
-dbt Core (Transforms)
-       |
-Metabase (Dashboard)
+
+```mermaid
+graph TD
+    subgraph Source [Data Ingestion]
+        CSV[(CSV Files)] --> |load_data.py| Raw[Postgres: Raw Schema]
+    end
+
+    subgraph Transform [dbt Transformation]
+        Raw --> Staging[Staging Views]
+        Staging --> Marts[Reporting Marts]
+        Staging --> FeatureStore[Feature Store: mart_churn_features]
+        FeatureStore --> |Time Travel Cutoff| TrainSet[Training Data]
+        Staging --> InferenceSet[Inference Features]
+    end
+
+    subgraph ML [MLOps Pipeline]
+        TrainSet --> |train_churn_model.py| XGBoost[XGBoost Trainer]
+        XGBoost --> |Log Metrics/Artifacts| MLflow[MLflow Registry]
+        MLflow --> |Load Best Model| Predictor[predict_churn.py]
+        InferenceSet --> Predictor
+        Predictor --> |Write Scores| Predictions[Postgres: analytics.churn_predictions]
+    end
+
+    subgraph BI [Business Intelligence]
+        Marts --> Metabase[Metabase Dashboard]
+        Predictions --> Metabase
+    end
+```
 
 ## Quick Start (5 Minutes)
 
