@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: churn_features
+    description: "Feature Store: Customer Behavior snapshot at T=2023-09-01 (Training Cutoff)."
+    config:
+      materialized: table
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: recency_days
+        tests:
+          - not_null
+      - name: frequency_60d
+        tests:
+          - not_null
+
+  - name: churn_labels
+    description: "Target Store: Did the user churn in the 30 days AFTER T=2023-09-01?"
+    config:
+      materialized: table
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: is_churned
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
