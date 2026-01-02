@@ -31,3 +31,17 @@ models:
       - name: period_number
         tests:
           - not_null
+
+  - name: mart_churn_features
+    description: "Feature Training Set for Churn Prediction (One row per user)"
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: is_churned
+        description: "1 if recency > 90 days, else 0"
+        tests:
+          - accepted_values:
+              values: [0, 1]
+

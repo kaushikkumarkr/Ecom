@@ -11,11 +11,11 @@ renamed as (
         user_id,
         status,
         gender,
-        created_at,
-        returned_at,
-        shipped_at,
-        delivered_at,
-        num_of_item as num_items
+        created_at::timestamp as created_at,
+        returned_at::timestamp as returned_at,
+        shipped_at::timestamp as shipped_at,
+        delivered_at::timestamp as delivered_at,
+        num_of_item
 
     from source
 
