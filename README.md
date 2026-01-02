@@ -8,6 +8,7 @@ Built to demonstrate Data Science engineering & analytics mastery.
 -   **Warehouse**: PostgreSQL 15
 -   **Transformation**: dbt Core 1.7
 -   **Quality**: Great Expectations
+-   **Tuning**: Optuna (Bayesian Optimization)
 -   **Visualization**: Metabase
 -   **Language**: Python 3.11
 
@@ -33,7 +34,9 @@ graph TD
     end
 
     subgraph ML [MLOps Pipeline]
-        TrainSet --> |train_churn_model.py| XGBoost[XGBoost Trainer]
+        TrainSet --> |tune_model.py| Optuna[Optuna Tuning]
+        Optuna --> |Best Params| XGBoost[XGBoost Trainer]
+        TrainSet --> |train_advanced.py| XGBoost
         XGBoost --> |Log Metrics/Artifacts| MLflow[MLflow Registry]
         MLflow --> |Load Best Model| Predictor[predict_churn.py]
         InferenceSet --> Predictor
