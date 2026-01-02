@@ -16,7 +16,7 @@ services:
     networks:
       - ecom_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d ecom"]
+      test: [ "CMD-SHELL", "pg_isready -U user -d ecom" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,15 +30,17 @@ services:
     volumes:
       - ./:/usr/src/app
       - ~/.dbt:/root/.dbt # Optional: mapping local dbt profiles
+      - ./mlflow:/mlflow
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_PORT=5432
       - POSTGRES_DB=ecom
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
+      - mlflow
     command: tail -f /dev/null # Keep alive to run commands via 'docker-compose exec'
     networks:
       - ecom_network
@@ -64,9 +66,45 @@ services:
     volumes:
       - metabase_data:/metabase-data
 
+  # 4. MLflow (Experiment Tracking)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    container_name: ecom_mlflow
+    ports:
+      - "5001:5000"
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0
+    volumes:
+      - ./mlflow:/mlflow
+    networks:
+      - ecom_network
+
+  # 5. Serving (FastAPI)
+  api:
+    image: python:3.11-slim
+    container_name: ecom_api
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+      - ./mlflow:/mlflow
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ecom
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
+    ports:
+      - "8000:8000"
+    command: bash -c "pip install fastapi uvicorn pandas sqlalchemy psycopg2-binary mlflow xgboost scikit-learn && uvicorn ml.inference.app:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - postgres
+      - mlflow
+    networks:
+      - ecom_network
+
 volumes:
   postgres_data:
   metabase_data:
+
 
 networks:
   ecom_network:
