@@ -109,7 +109,7 @@ def run_quality_check():
         print("Data Quality Check FAILED!")
         for res in results.run_results.values():
             if not res["success"]:
-                print(f"Failed Validation: {res['validation_result']['meta']}")
+                print(f"Failed Validation: {res.meta}")
         sys.exit(1)
     else:
         print("Data Quality Check PASSED!")
