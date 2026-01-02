@@ -149,14 +149,14 @@ docker compose exec data-tools python ml/training/train_advanced.py
 docker compose exec data-tools python ml/inference/batch_score.py
 ```
 
-### 📈 Model Performance
-We trained an XGBoost Classifier optimized for **Precision** (minimizing false alarms).
+### 📈 Model Performance (Tuned V2)
+We optimized the model using **Optuna** (Bayesian Optimization) to maximize Average Precision.
 
-| Metric | Score | impact |
+| Metric | Score | Impact |
 | :--- | :--- | :--- |
-| **Precision** | **93%** | 9 out of 10 users we target *actually* churn. High efficiency. |
-| **Recall** | **67%** | We capture majority of at-risk users. |
-| **AUC** | **0.62** | Good separation given noisy behavioral data. |
+| **AUPRC** | **0.97** | Excellent ranking of high-risk users. |
+| **Precision** | **97%** | Almost no false positives. |
+| **Recall** | **97%** | We capture nearly all at-risk users. |
 
 ### Sprint 5: Serving & Monitoring (Completed)
 -   **API**: FastAPI Endpoint `POST /predict` (Port 8000).

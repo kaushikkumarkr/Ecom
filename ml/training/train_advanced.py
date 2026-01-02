@@ -6,7 +6,7 @@ import xgboost as xgb
 import shap
 from sqlalchemy import create_engine
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, confusion_matrix
+from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, confusion_matrix, average_precision_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -61,16 +61,18 @@ def train_advanced():
         pos_count = (y_train == 1).sum()
         scale_pos_weight = neg_count / pos_count
         
-        # XGBoost Model
+        # XGBoost Model (Tuned via Optuna - Sprint 6)
         params = {
             "objective": "binary:logistic",
             "eval_metric": "auc",
-            "max_depth": 4,
-            "learning_rate": 0.05,
+            "max_depth": 9,
+            "learning_rate": 0.82, 
             "n_estimators": 200,
-            "scale_pos_weight": scale_pos_weight,
-            "subsample": 0.8,
-            "colsample_bytree": 0.8,
+            "scale_pos_weight": 1.008,
+            "gamma": 0.0056,
+            "reg_alpha": 1.08e-06,
+            "reg_lambda": 1.52e-05,
+            "grow_policy": 'depthwise',
             "random_state": 42
         }
         
@@ -99,6 +101,11 @@ def train_advanced():
         mlflow.log_metric("precision", precision)
         mlflow.log_metric("recall", recall)
         
+        # Additional Metric: Average Precision (Optimized in Tune)
+        avg_precision = average_precision_score(y_test, y_prob)
+        print(f"Average Precision (AUPRC): {avg_precision:.4f}")
+        mlflow.log_metric("average_precision", avg_precision)
+        
         # Feature Importance (SHAP)
         print("Generating SHAP Explanations...")
         explainer = shap.Explainer(model)
@@ -113,7 +120,9 @@ def train_advanced():
         os.remove("shap_summary.png")
         
         # Register Model
-        mlflow.xgboost.log_model(model, "model", registered_model_name="churn_prediction_advanced")
+        # Register Model (Log Booster to avoid sklearn wrapper issues)
+        booster = model.get_booster()
+        mlflow.xgboost.log_model(booster, "model", registered_model_name="churn_prediction_advanced")
         print("Model Registered in MLflow.")
 
 if __name__ == "__main__":
