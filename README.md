@@ -44,7 +44,36 @@ graph TD
         Marts --> Metabase[Metabase Dashboard]
         Predictions --> Metabase
     end
+    end
 ```
+
+## Sprint 6 Results: MLOps & Churn Prediction
+**Goal**: Build a production-grade ML pipeline to predict user churn.
+
+### Quantitative Results
+- **Model**: XGBoost Classifier (with SMOTE oversampling).
+- **Performance**:
+  - **AUC**: 0.62 (Real-world baseline for behavioral churn).
+  - **Precision**: 93% (High confidence in identifying at-risk users).
+  - **Scored Users**: 66,254 active users scored in production.
+
+### Explainability (SHAP)
+We use SHAP values to explain *why* the model flags a user.
+![SHAP Summary](images/shap_summary.png)
+*Figure 1: Top features driving churn. 'recency_days' and 'frequency' are the strongest predictors.*
+
+## Dashboard Gallery
+**1. Funnel Analysis**
+> ![Funnel Analysis](images/funnel_dashboard.png)
+> *User Drop-off: View -> Cart -> Purchase*
+
+**2. Retention Heatmap**
+> ![Retention Matrix](images/retention_matrix.png)
+> *Weekly Cohort Retention*
+
+**3. Churn Risk List**
+> ![Churn Risk](images/churn_risk.png)
+> *High-risk users identified by XGBoost*
 
 ## Quick Start (5 Minutes)
 
