@@ -22,13 +22,19 @@
 ## Quantitative Analysis
 -   **Training Split**: 80% Train, 20% Test (Stratified).
 -   **Performance Metrics**:
-    -   **AUC**: 0.62 (Behavioral data noisy).
-    -   **Precision**: 93% (High confidence in positive predictions).
-    -   **Recall**: 67% (Captures 2/3rds of churners).
+    -   **Precision (93%)**: The model is highly precise. When it predicts a user will churn, it is correct 93% of the time. This is critical for preventing wasted marketing spend on false positives.
+    -   **Recall (67%)**: Captures 2/3rds of all true churners.
+    -   **AUC (0.62)**: Moderate separability, typical for noisy behavioral datasets.
+-   **Drift Analysis**:
+    -   Drift detected in `recency_days` (expected as platform grows).
+    -   Action: Weekly monitoring recommended.
 
-## Ethical Considerations
--   **Bias**: Model uses "Country" and "Gender" as features. Ensure coupons are not withheld from protected groups unfairly (fairness check recommended for V2).
--   **Privacy**: Uses only first-party behavioral data. No PII used in training.
+## Architecture & Data Flow
+1.  **Feature Store**: dbt models `mart_churn_features` (Train) & `mart_churn_scoring` (Inference).
+2.  **Training**: XGBoost classifier logged to MLflow Registry.
+3.  **Inference**:
+    -   **Batch**: Nightly job (`batch_score.py`) populates `analytics.churn_scores`.
+    -   **Real-time**: FastAPI endpoint (`POST /predict`) fetches live features.
 
 ## Caveats & Recommendations
 -   **Cold Start**: Cannot score users with 0 orders.
