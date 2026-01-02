@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # 1. Warehouse (Postgres)
+  postgres:
+    image: postgres:15
+    container_name: ecom_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecom
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecom_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d ecom"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Data Tools (Python env for dbt + loader)
+  # using a standard python image, we will install requirements via entrypoint or build
+  data-tools:
+    image: python:3.11-slim
+    container_name: ecom_data_tools
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+      - ~/.dbt:/root/.dbt # Optional: mapping local dbt profiles
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=ecom
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: tail -f /dev/null # Keep alive to run commands via 'docker-compose exec'
+    networks:
+      - ecom_network
+
+  # 3. BI (Metabase)
+  metabase:
+    image: metabase/metabase:latest
+    container_name: ecom_metabase
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabaseappdb
+      MB_DB_PORT: 5432
+      MB_DB_USER: user
+      MB_DB_PASS: password
+      MB_DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecom_network
+    volumes:
+      - metabase_data:/metabase-data
+
+volumes:
+  postgres_data:
+  metabase_data:
+
+networks:
+  ecom_network:

@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: fct_sessions
+    description: "Sessionized event data"
+    columns:
+      - name: session_id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('stg_users')
+              field: user_id
+  
+  - name: mart_funnel
+    description: "Funnel analysis aggregated by traffic source"
+    columns:
+      - name: traffic_source
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_retention
+    description: "Weekly cohort retention analysis"
+    columns:
+      - name: cohort_week
+        tests:
+          - not_null
+      - name: period_number
+        tests:
+          - not_null

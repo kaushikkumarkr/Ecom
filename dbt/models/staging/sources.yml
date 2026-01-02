@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: thelook_ecommerce
+    database: ecom
+    schema: raw
+    tables:
+      - name: users
+        description: "Registered users data"
+        columns:
+          - name: id
+            tests:
+              - unique
+              - not_null
+      - name: products
+        description: "Product catalog"
+        columns:
+          - name: id
+            tests:
+              - unique
+              - not_null
+      - name: orders
+        description: "Order transactions"
+      - name: order_items
+        description: "Items within orders"
+      - name: events
+        description: "Web/App events (clickstream)"
+        columns:
+            - name: session_id
+              tests:
+                - not_null
+      - name: inventory_items
+        description: "Inventory tracking"

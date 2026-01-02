@@ -1,0 +1,12 @@
+ecom:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      threads: 4
+      host: "{{ env_var('POSTGRES_HOST', 'postgres') }}"
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER', 'user') }}"
+      pass: "{{ env_var('POSTGRES_PASSWORD', 'password') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'ecom') }}"
+      schema: public

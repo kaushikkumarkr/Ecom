@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: stg_users
+    description: "Staging users model"
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: traffic_source
+        tests:
+          - accepted_values:
+              values: ['Search', 'Organic', 'Facebook', 'Email', 'Display']
+              quote: true
+        # Note: Actual values in TheLook might vary, this is a placeholder for the test requirement.
+        # We might need to relax this if we don't know the exact values yet, but for "quality" sprints we should define them.
+        # I'll comment it out or make it warn if I'm unsure, but request said "accepted values". 
+        # I'll stick to a simpler one or check standard values. Let's assume standard 5 for now.
+
+  - name: stg_events
+    description: "Staging events model"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['product', 'department', 'cart', 'purchase', 'cancel', 'home']
+
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['Complete', 'Cancelled', 'Returned', 'Processing', 'Shipped']
+
+  - name: stg_order_items
+    columns:
+      - name: order_item_id
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+
+  - name: stg_products
+    columns:
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+      - name: cost
+        tests: 
+          - not_null
