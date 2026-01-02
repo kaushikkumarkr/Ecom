@@ -44,7 +44,6 @@ graph TD
         Marts --> Metabase[Metabase Dashboard]
         Predictions --> Metabase
     end
-    end
 ```
 
 ## Sprint 6 Results: MLOps & Churn Prediction
