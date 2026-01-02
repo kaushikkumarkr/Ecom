@@ -109,3 +109,59 @@ We use SHAP values to explain *why* the model flags a user.
 -   **Funnel Analysis**: `mart_funnel` tracks View -> Cart -> Purchase drop-off.
 -   **Cohort Retention**: `mart_retention` tracks weekly user retention.
 -   **Automated Quality**: Integrated Great Expectations checkpoints in CI.
+
+## Project 2: Customer Churn & Retention Targeting (MMLOps)
+Extension to build a production-grade Churn Prediction system.
+
+### Sprint 1: Data Engineering (Completed)
+-   **Architecture**: Added MLflow Tracking Server (Port 5001).
+-   **Feature Mart**: `mart_churn_features` (RFM, Engagement, Conversion) with strict 60-day window.
+-   **Labels**: `mart_churn_labels` (30-day prediction horizon).
+-   **Quality**: dbt Tests & Great Expectations validations passed.
+
+### Sprint 2: Baseline Modeling (Completed)
+-   **Model**: Logistic Regression (Scikit-learn Pipeline).
+-   **Tracking**: MLflow Experiment `churn_prediction_project2`.
+-   **Metrics**: AUC, F1, Precision, Recall logged.
+
+### Sprint 3: Advanced Modeling (Completed)
+-   **Model**: XGBoost Classifier (with `scale_pos_weight` for imbalance).
+-   **Explainability**: SHAP Summary Plots generated and saved to MLflow.
+-   **Registry**: Best model registered as `churn_prediction_advanced`.
+
+### Sprint 4: Actionability (Completed)
+-   **Inference Features**: `mart_churn_scoring` (Features for "Today" / Latest Date).
+-   **Batch Job**: `batch_score.py` runs on-demand.
+-   **Output**: 
+    -   `analytics.churn_scores`: Probabilities for all users.
+    -   `analytics.retention_targets`: Top 500 users sorted by Expected Uplift (ROI).
+-   **Logic**: `Expected Value = (Prob * $150 LTV * 30% Winback) - $10 Cost`.
+
+### How to Run Project 2 MLOps
+```bash
+# 1. Build ML Features
+docker compose exec data-tools bash -c "cd dbt && dbt build --select churn_features churn_labels churn_scoring"
+
+# 2. Run Training
+docker compose exec data-tools python ml/training/train_advanced.py
+
+# 3. Run Batch Scoring
+docker compose exec data-tools python ml/inference/batch_score.py
+```
+
+### Sprint 5: Serving & Monitoring (Completed)
+-   **API**: FastAPI Endpoint `POST /predict` (Port 8000).
+-   **Drift Report**: `reports/drift_report.html` compares Training vs Inference feature distributions.
+-   **Documentation**: `ml/model_card.md` details model lineage and limits.
+
+### How to Run Serving
+```bash
+# 1. Start API (runs on port 8000)
+docker compose up -d api
+
+# 2. Test Prediction via Curl
+curl -X POST "http://localhost:8000/predict" -H "Content-Type: application/json" -d '{"user_id": 123}'
+
+# 3. Generate Drift Report
+docker compose exec data-tools python ml/monitoring/drift_report.py
+```
